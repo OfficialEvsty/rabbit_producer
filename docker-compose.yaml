@@ -1,0 +1,45 @@
+services:
+  producer:
+    build:
+      context: .
+    ports:
+      - ${PRODUCER_PORT}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - rabbitmq-network
+    environment:
+      RABBITMQ_URL: $RABBITMQ_URL
+      AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+      AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+      AWS_ENDPOINT: $AWS_ENDPOINT
+      AWS_REGION: $AWS_REGION
+      AWS_BUCKET: $AWS_BUCKET
+  rabbitmq:
+    container_name: rabbit
+    image: rabbitmq:3-management
+    ports:
+      - ${RABBITMQ_PORT}:${RABBITMQ_PORT}
+      - ${RABBITMQ_WEB_PORT}:${RABBITMQ_WEB_PORT}
+    networks:
+      - rabbitmq-network
+    environment:
+      RABBITMQ_DEFAULT_USER: $RABBITMQ_DEFAULT_USER
+      RABBITMQ_DEFAULT_PASS: $RABBITMQ_DEFAULT_PASS
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  rabbitmq-network:
+    driver: bridge
