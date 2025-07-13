@@ -39,7 +39,7 @@ func NewS3Client(log *slog.Logger) (*S3Client, error) {
 func (s *S3Client) GeneratePreSignUrl(ctx context.Context, bucket, contentType string) (string, string, error) {
 	key := uuid.New().String()
 	timeToExpire := 1 * time.Hour
-	keyWithType := fmt.Sprintf("%s.%s", key, contentType)
+	keyWithType := fmt.Sprintf("%s%s", key, contentType)
 	preSignedRes, err := s.s3PreSign.PresignPutObject(
 		ctx,
 		&s3.PutObjectInput{
@@ -50,5 +50,5 @@ func (s *S3Client) GeneratePreSignUrl(ctx context.Context, bucket, contentType s
 	if err != nil {
 		return "", "", fmt.Errorf("error generating pre-signed url: %v", err)
 	}
-	return preSignedRes.URL, key, nil
+	return preSignedRes.URL, keyWithType, nil
 }
